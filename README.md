@@ -63,4 +63,24 @@ O MI foi normalizado em relação à entropia da variável Class (`~0.01834 bits
 | V11      | 0.006831           | 37.24%               | 0.0520                    |
 | V16      | 0.006144           | 33.50%               | 0.0498                    |
 
+### Lidando com o desbalanceamento
+Durante os testes, foram avaliados quatro abordagens para lidar com o desbalanceamento extremo do conjunto de dados (fraudes ≈ 0,17%):
+| Estratégia           | Precision  | Recall     | F1 Score   | ROC AUC    |
+| -------------------- | ---------- | ---------- | ---------- | ---------- |
+| **Undersampling**    | 0.7612     | 0.7951     | 0.7765     | 0.9211     |
+| **Oversampling**     | 0.7713     | 0.7903     | 0.7807     | 0.9230     |
+| **SMOTE**            | 0.7899     | 0.8020     | 0.7959     | 0.9270     |
+| **Sem reamostragem** | **0.7999** | **0.8252** | **0.8122** | **0.9554** |
+
+Foi concluído que modelos robustos que conseguem lidar com grande desbalanceamento, igual ao `XGBoost` e `Random Forest`, conseguiram melhores resultados utilizando o conjunto desbalanceado do que com técnicas de desbalanceamento igual `SMOTE`. 
+
+## 🤖 Escolha do Modelo Final
+**Modelos comparados sem reamostragem:**
+| Modelo            | Precision  | Recall     | F1 Score   | ROC AUC    |
+| ----------------- | ---------- | ---------- | ---------- | ---------- |
+| **Random Forest** | **0.9397** | 0.7826     | **0.8537** | 0.9297     |
+| **XGBoost**       | 0.7999     | **0.8252** | 0.8122     | **0.9554** |
+
+Foi optado pelo ``Random Forest`` como modelo final, por apresentar o melhor equilíbrio entre precisão e capacidade geral do modelo, especialmente considerando o objetivo de evitar falsos alarmes excessivos.
+
 
