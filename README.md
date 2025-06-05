@@ -83,4 +83,12 @@ Foi concluído que modelos robustos que conseguem lidar com grande desbalanceame
 
 Foi optado pelo ``Random Forest`` como modelo final, por apresentar o melhor equilíbrio entre precisão e capacidade geral do modelo, especialmente considerando o objetivo de evitar falsos alarmes excessivos.
 
+### Treinando o modelo
+O modelo ``Random Forest`` foi treinado com 70% do conjunto de dados e 30% para o teste do modelo. Inicialmente, o modelo foi treinado com threshold de 0.5 e forneceu os seguintes resultados:
 
+| Decisão            | Não fraude  | Fraude     
+| ----------------- | ---------- | ---------- | 
+| Passou | 85.290 | 36     |
+| Não passou       | 5     | 112 |
+
+Ou seja, o modelo teve um grande resultado em relação a falsos positivos, mas teve um erro de 24% em barrar fraudes legítimas.
