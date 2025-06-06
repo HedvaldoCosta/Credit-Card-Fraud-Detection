@@ -86,6 +86,31 @@ Foi optado pelo ``Random Forest`` como modelo final, por apresentar o melhor equ
 ### Treinando o modelo
 O modelo ``Random Forest`` foi treinado com 70% do conjunto de dados e 30% para o teste do modelo. Inicialmente, o modelo foi treinado com threshold de 0.5 e forneceu os seguintes resultados:
 
+```python
+features = ['V14', 'V10', 'V12', 'V17', 'V11', 'V16']
+
+X = df[features]
+y = df['Class']
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, stratify=y, random_state=42
+)
+
+rf_model = RandomForestClassifier(class_weight='balanced', random_state=42)
+
+rf_model.fit(X_train, y_train)
+
+y_pred = rf_model.predict(X_test)
+y_proba = rf_model.predict_proba(X_test)[:, 1]
+threshold = 0.2
+y_pred_threshold = (y_proba >= threshold).astype(int)
+
+print("Melhores parâmetros:", grid_search.best_params_)
+print(confusion_matrix(y_test, y_pred_threshold))
+print(classification_report(y_test, y_pred_threshold))
+print("ROC AUC:", roc_auc_score(y_test, y_proba))
+```
+
 | Classe       | Métrica                   | Valor   |
 | ------------ | ------------------------- | ------- |
 | 0 (legítima) | TN (corretas)             | 85.290  |
@@ -106,6 +131,8 @@ Com isso, foram testados novos treinamentos com diferentes thresholds:
 | 1 (fraude)   | FN (fraudes que passaram) | **30**  |
 | 1 (fraude)   | TP (fraudes detectadas)   | **118** |
 
+**Redução de 16,67% no número de fraudes, mas um aumento de 260% nas transações barradas por engano.**
+
 **threshold = 0.20**
 
 | Classe       | Métrica                   | Valor   |
@@ -114,6 +141,8 @@ Com isso, foram testados novos treinamentos com diferentes thresholds:
 | 0 (legítima) | FP (barradas por engano)  | **22**  |
 | 1 (fraude)   | FN (fraudes que passaram) | **28**  |
 | 1 (fraude)   | TP (fraudes detectadas)   | **120** |
+
+**Redução de 22,22% no número de fraudes, mas um aumento de 340% nas transações barradas por engano.**
 
 **threshold = 0.15**
 
@@ -124,4 +153,41 @@ Com isso, foram testados novos treinamentos com diferentes thresholds:
 | 1 (fraude)   | FN (fraudes que passaram) | **27**  |
 | 1 (fraude)   | TP (fraudes detectadas)   | **121** |
 
+**Redução de 25% no número de fraudes, mas um aumento de 500% nas transações barradas por engano.**
+
+---
+**Identificando novas melhorias, foi testado o uso da técnica de ``CalibratedClassifierCV`` junto com penalização de falsos negativos**
+
+```python
+rf = RandomForestClassifier(
+    n_estimators=200,
+    max_depth=10,
+    min_samples_leaf=2,
+    min_samples_split=2,
+    class_weight={0: 1, 1: 10},
+    random_state=42
+)
+
+calibrated_rf = CalibratedClassifierCV(rf, method='isotonic', cv=3)
+calibrated_rf.fit(X_train, y_train)
+
+y_pred = calibrated_rf.predict(X_test)
+y_proba = calibrated_rf.predict_proba(X_test)[:, 1]
+threshold = 0.2
+y_pred_threshold = (y_proba >= threshold).astype(int)
+
+print("Melhores parâmetros:", grid_search.best_params_)
+print(confusion_matrix(y_test, y_pred_threshold))
+print(classification_report(y_test, y_pred_threshold))
+print("ROC AUC:", roc_auc_score(y_test, y_proba))
+```
+
+**Onde os resultados foram minimamente melhores:**
+
+| Classe       | Métrica                   | Valor   |
+| ------------ | ------------------------- | ------- |
+| 0 (legítima) | TN (corretas)             | 85.265  |
+| 0 (legítima) | FP (barradas por engano)  | **27**  |
+| 1 (fraude)   | FN (fraudes que passaram) | **27**  |
+| 1 (fraude)   | TP (fraudes detectadas)   | **121** |
 
