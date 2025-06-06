@@ -99,16 +99,6 @@ X_train, X_test, y_train, y_test = train_test_split(
 rf_model = RandomForestClassifier(class_weight='balanced', random_state=42)
 
 rf_model.fit(X_train, y_train)
-
-y_pred = rf_model.predict(X_test)
-y_proba = rf_model.predict_proba(X_test)[:, 1]
-threshold = 0.2
-y_pred_threshold = (y_proba >= threshold).astype(int)
-
-print("Melhores parâmetros:", grid_search.best_params_)
-print(confusion_matrix(y_test, y_pred_threshold))
-print(classification_report(y_test, y_pred_threshold))
-print("ROC AUC:", roc_auc_score(y_test, y_proba))
 ```
 
 | Classe       | Métrica                   | Valor   |
