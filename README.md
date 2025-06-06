@@ -86,9 +86,42 @@ Foi optado pelo ``Random Forest`` como modelo final, por apresentar o melhor equ
 ### Treinando o modelo
 O modelo ``Random Forest`` foi treinado com 70% do conjunto de dados e 30% para o teste do modelo. Inicialmente, o modelo foi treinado com threshold de 0.5 e forneceu os seguintes resultados:
 
-| Decisão            | Não fraude  | Fraude     
-| ----------------- | ---------- | ---------- | 
-| Passou | 85.290 | 36     |
-| Não passou       | 5     | 112 |
+| Classe       | Métrica                   | Valor   |
+| ------------ | ------------------------- | ------- |
+| 0 (legítima) | TN (corretas)             | 85.290  |
+| 0 (legítima) | FP (barradas por engano)  | **5**  |
+| 1 (fraude)   | FN (fraudes que passaram) | **36**  |
+| 1 (fraude)   | TP (fraudes detectadas)   | **112** |
 
 Ou seja, o modelo teve um grande resultado em relação a falsos positivos, mas teve um erro de 24% em barrar fraudes legítimas.
+
+Com isso, foram testados novos treinamentos com diferentes thresholds:
+
+**threshold = 0.25**
+
+| Classe       | Métrica                   | Valor   |
+| ------------ | ------------------------- | ------- |
+| 0 (legítima) | TN (corretas)             | 85.277  |
+| 0 (legítima) | FP (barradas por engano)  | **18**  |
+| 1 (fraude)   | FN (fraudes que passaram) | **30**  |
+| 1 (fraude)   | TP (fraudes detectadas)   | **118** |
+
+**threshold = 0.20**
+
+| Classe       | Métrica                   | Valor   |
+| ------------ | ------------------------- | ------- |
+| 0 (legítima) | TN (corretas)             | 85.273  |
+| 0 (legítima) | FP (barradas por engano)  | **22**  |
+| 1 (fraude)   | FN (fraudes que passaram) | **28**  |
+| 1 (fraude)   | TP (fraudes detectadas)   | **120** |
+
+**threshold = 0.15**
+
+| Classe       | Métrica                   | Valor   |
+| ------------ | ------------------------- | ------- |
+| 0 (legítima) | TN (corretas)             | 85.265  |
+| 0 (legítima) | FP (barradas por engano)  | **30**  |
+| 1 (fraude)   | FN (fraudes que passaram) | **27**  |
+| 1 (fraude)   | TP (fraudes detectadas)   | **121** |
+
+
