@@ -1,17 +1,8 @@
 # 🛡️ Detecção de Fraude em Cartões de Crédito com Machine Learning
 
-Este projeto apresenta uma abordagem de machine learning para identificar transações potencialmente fraudulentas em um grande conjunto de dados de cartões de crédito. O objetivo é desenvolver um modelo eficiente, confiável e interpretável para apoiar decisões em ambientes de risco financeiro.
+*Este projeto apresenta uma abordagem de machine learning para identificar transações potencialmente fraudulentas em um grande conjunto de dados de cartões de crédito. O objetivo é desenvolver um modelo eficiente, confiável e interpretável para apoiar decisões em ambientes de risco financeiro.*
 
 ---
-
-## 📂 Sumário
-
-- [Contexto do Problema](#contexto-do-problema)
-- [Objetivos do Projeto](#objetivos-do-projeto)
-- [Descrição dos Dados](#descrição-dos-dados)
-- [Análise exploratória de dados](#analise-exploratoria-de-dados)
----
-
 ## 📌 Contexto do Problema
 
 Fraudes com cartões de crédito causam bilhões em prejuízo às instituições financeiras anualmente. A maioria dos sistemas de detecção tradicionais apresenta dificuldades em:
@@ -34,7 +25,7 @@ Fraudes com cartões de crédito causam bilhões em prejuízo às instituições
 - **Fonte**: [Kaggle - Credit Card Fraud Detection](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)
 - **Tipos de dados**: 30 float64 e 1 int64
 - **Total de transações**: 284.807 (sem dados ausentes)
-- **Transações fraudulentas**: 492 (aproximadamente 0,172%)
+- **Transações fraudulentas**: 492 (aproximadamente **0,172%**)
 - **Colunas principais**:
   - `V1` a `V28`: variáveis transformadas via PCA para anonimização
   - `Amount`: valor da transação
