@@ -65,14 +65,21 @@ O MI foi normalizado em relação à entropia da variável Class (`~0.01834 bits
 
 ### Lidando com o desbalanceamento
 Durante os testes, foram avaliados quatro abordagens para lidar com o desbalanceamento extremo do conjunto de dados (fraudes ≈ 0,17%):
-| Estratégia           | Precision  | Recall     | F1 Score   | ROC AUC    |
-| -------------------- | ---------- | ---------- | ---------- | ---------- |
-| **Undersampling**    | 0.7612     | 0.7951     | 0.7765     | 0.9211     |
-| **Oversampling**     | 0.7713     | 0.7903     | 0.7807     | 0.9230     |
-| **SMOTE**            | 0.7899     | 0.8020     | 0.7959     | 0.9270     |
-| **Sem reamostragem** | **0.7999** | **0.8252** | **0.8122** | **0.9554** |
 
-Foi concluído que modelos robustos que conseguem lidar com grande desbalanceamento, igual ao `XGBoost` e `Random Forest`, conseguiram melhores resultados utilizando o conjunto desbalanceado do que com técnicas de desbalanceamento igual `SMOTE`. 
+## Comparação de Técnicas de Balanceamento
+
+| Técnica           |   TP |   FN |    FP |   Precision |   Recall |         F1 |   ROC AUC |   Threshold |
+|:------------------|-----:|-----:|------:|------------:|---------:|-----------:|----------:|------------:|
+| **Sem Balanceamento** |  119 |   29 |    34 |  0.777778   | 0.804054 | 0.790698   |  0.952014 |        0.41 |
+| NearMiss-1        |  144 |    4 | 74666 |  0.00192488 | 0.972973 | 0.00384215 |  0.902703 |        0.5  |
+| NearMiss-2        |  128 |   20 | 29475 |  0.00432389 | 0.864865 | 0.00860475 |  0.881739 |        0.5  |
+| NearMiss-3        |  118 |   30 |   170 |  0.409722   | 0.797297 | 0.541284   |  0.912913 |        0.5  |
+| ADASYN            |  122 |   26 |  2167 |  0.0532984  | 0.824324 | 0.100123   |  0.94517  |        0.5  |
+| SMOTE+Tomek       |  119 |   29 |   422 |  0.219963   | 0.804054 | 0.345428   |  0.950103 |        0.5  |
+| EasyEnsemble      |  126 |   22 |  3661 |  0.0332717  | 0.851351 | 0.0640407  |  0.943477 |        0.5  |
+| BalancedRF        |  130 |   18 |  2618 |  0.0473071  | 0.878378 | 0.089779   |  0.958013 |        0.5  |
+
+Foi concluído que modelos robustos que conseguem lidar com grande desbalanceamento, igual ao `XGBoost` e `Random Forest`, conseguiram melhores resultados utilizando o conjunto desbalanceado do que com técnicas de balanceamento.
 
 ## 🤖 Escolha do Modelo Final
 **Modelos comparados sem reamostragem:**
@@ -146,38 +153,55 @@ Com isso, foram testados novos treinamentos com diferentes thresholds:
 **Redução de 25% no número de fraudes, mas um aumento de 500% nas transações barradas por engano.**
 
 ---
-**Identificando novas melhorias, foi testado o uso da técnica de ``CalibratedClassifierCV`` junto com penalização de falsos negativos**
+**Identificando novas melhorias, foi testado o uso da calibração e funções para identificar a melhor combinação de parâmetros.**
 
 ```python
-rf = RandomForestClassifier(
-    n_estimators=200,
-    max_depth=10,
-    min_samples_leaf=2,
-    min_samples_split=2,
-    class_weight={0: 1, 1: 10},
-    random_state=42
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, stratify=y, random_state=42
 )
 
-calibrated_rf = CalibratedClassifierCV(rf, method='isotonic', cv=3)
-calibrated_rf.fit(X_train, y_train)
+def build_optimized_model(X_train, y_train):
+    base_rf = RandomForestClassifier(
+        class_weight='balanced',
+        random_state=42
+    )
+    
+    calibrated = CalibratedClassifierCV(
+        base_rf,
+        method='isotonic',
+        cv=3
+    )
+    
+    param_grid = {
+        'base_estimator__n_estimators': [100, 200],
+        'base_estimator__max_depth': [5, 10, None],
+        'base_estimator__min_samples_leaf': [1, 2],
+        'method': ['sigmoid', 'isotonic']
+    }
+    
+    search = GridSearchCV(
+        calibrated,
+        param_grid,
+        scoring='f1',
+        cv=3,
+        n_jobs=-1,
+        verbose=1
+    )
+    
+    search.fit(X_train, y_train)
+    return search.best_estimator_
 
-y_pred = calibrated_rf.predict(X_test)
-y_proba = calibrated_rf.predict_proba(X_test)[:, 1]
-threshold = 0.2
-y_pred_threshold = (y_proba >= threshold).astype(int)
-
-print("Melhores parâmetros:", grid_search.best_params_)
-print(confusion_matrix(y_test, y_pred_threshold))
-print(classification_report(y_test, y_pred_threshold))
-print("ROC AUC:", roc_auc_score(y_test, y_proba))
+optimized_model = build_optimized_model(X_train, y_train)
+y_proba_opt = optimized_model.predict_proba(X_test)[:, 1]
+optimal_threshold_opt = find_optimal_threshold(y_test, y_proba_opt)
+y_pred_opt = (y_proba_opt >= optimal_threshold_opt).astype(int)
 ```
 
 **Onde os resultados foram minimamente melhores:**
 
 | Classe       | Métrica                   | Valor   |
 | ------------ | ------------------------- | ------- |
-| 0 (legítima) | TN (corretas)             | 85.265  |
-| 0 (legítima) | FP (barradas por engano)  | **27**  |
-| 1 (fraude)   | FN (fraudes que passaram) | **27**  |
-| 1 (fraude)   | TP (fraudes detectadas)   | **121** |
-
+| 0 (legítima) | TN (corretas)             | 85.252  |
+| 0 (legítima) | FP (barradas por engano)  | **43**  |
+| 1 (fraude)   | FN (fraudes que passaram) | **25**  |
+| 1 (fraude)   | TP (fraudes detectadas)   | **123** |
