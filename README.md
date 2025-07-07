@@ -1,4 +1,6 @@
-# 🛡️ Detecção de Fraude em Cartões de Crédito com Machine Learning
+# 🛡️ Detecção de Fraudes em Cartões com Machine Learning
+### Um estudo realista com Random Forest, análise de entropia e calibração probabilística
+
 
 *Este projeto apresenta uma abordagem de machine learning para identificar transações potencialmente fraudulentas em um grande conjunto de dados de cartões de crédito. O objetivo é desenvolver um modelo eficiente, confiável e interpretável para apoiar decisões em ambientes de risco financeiro.*
 
@@ -78,6 +80,13 @@ Foi concluído que modelos robustos que conseguem lidar com grande desbalanceame
 | ----------------- | ---------- | ---------- | ---------- | ---------- |
 | **Random Forest** | **0.9397** | 0.7826     | **0.8537** | 0.9297     |
 | **XGBoost**       | 0.7999     | **0.8252** | 0.8122     | **0.9554** |
+| **LightGBM**       | 0.8014     | 0.7905 | 0.7959    | 	0.9485 |
+| Logistic Regression |      0.0652 |   0.8446 |     0.1211 |    0.9513 |
+| Naive Bayes         |      0.1535 |   0.8243 |     0.2587 |    0.9522 |
+| KNN                 |      0.9344 |   0.7703 |     0.8444 |    0.912  |
+| Decision Tree       |      0.7836 |   0.7095 |     0.7447 |    0.8546 |
+| AdaBoost            |      0.819  |   0.6419 |     0.7197 |    0.9532 |
+| Linear SVC          |      0.7981 |   0.5608 |     0.6587 |    0.9485 |
 
 Foi optado pelo ``Random Forest`` como modelo final, por apresentar o melhor equilíbrio entre precisão e capacidade geral do modelo, especialmente considerando o objetivo de evitar falsos alarmes excessivos.
 
@@ -151,6 +160,14 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, stratify=y, random_state=42
 )
 
+
+def find_optimal_threshold(y_true, y_proba):
+    precision, recall, thresholds = precision_recall_curve(y_true, y_proba)
+    f1_scores = 2 * (precision * recall) / (precision + recall + 1e-10)
+    best_idx = f1_scores.argmax()
+    return thresholds[best_idx]
+
+
 def build_optimized_model(X_train, y_train):
     base_rf = RandomForestClassifier(
         class_weight='balanced',
@@ -196,3 +213,5 @@ y_pred_opt = (y_proba_opt >= optimal_threshold_opt).astype(int)
 | 0 (legítima) | FP (barradas por engano)  | **43**  |
 | 1 (fraude)   | FN (fraudes que passaram) | **25**  |
 | 1 (fraude)   | TP (fraudes detectadas)   | **123** |
+
+O modelo se mostrou eficaz ao identificar mais de 8 em cada 10 fraudes, mesmo em um cenário extremamente desbalanceado. Esse desempenho indica um forte potencial para uso prático em sistemas de prevenção a fraudes em tempo real.
